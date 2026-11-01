@@ -1,7 +1,7 @@
 """Regenerate the README screenshots of the web interface.
 
 Usage (from the project root):
-    pip install -r requirements-dev.txt
+    pip install -r requirements-e2e.txt
     python -m playwright install chromium
     python scripts/screenshot.py
 

@@ -1,3 +1,6 @@
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["."]
+# End-to-end tests need Playwright and a browser, so they only run when
+# requested explicitly: python -m pytest tests/e2e
+addopts = "--ignore=tests/e2e"

@@ -1,5 +1,7 @@
 # Task Manager 📝
 
+[![Tests](https://github.com/sugixp/task-manager/actions/workflows/tests.yml/badge.svg)](https://github.com/sugixp/task-manager/actions/workflows/tests.yml)
+
 **[▶ Live demo](https://sugixp.github.io/task-manager/)** — the demo is a static
 JavaScript version that saves tasks in your browser; the main application is
 written in Python with Flask.

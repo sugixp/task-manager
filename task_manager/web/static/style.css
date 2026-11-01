@@ -1,24 +1,45 @@
 /* ---------- Theme ---------- */
 
+/* Pastel orange and green. Pastel tones fill backgrounds, badges and the
+   progress bar; darker shades of the same hues are used for text, buttons
+   and links so every text pair meets WCAG AA (4.5:1). */
 :root {
   color-scheme: light; /* keep native controls light even in OS dark mode */
-  --bg: #f4f5f7;
-  --surface: #ffffff;
-  --text: #1f2330;
-  --muted: #6b7280;
-  --border: #e3e5ea;
-  --primary: #4f46e5;
-  --primary-hover: #4338ca;
-  --danger: #dc2626;
-  --success-bg: #ecfdf5;
-  --success-text: #047857;
-  --error-bg: #fef2f2;
-  --error-text: #b91c1c;
-  --high: #dc2626;
-  --medium: #d97706;
-  --low: #059669;
+
+  /* Neutrals */
+  --bg: #fff8f0;              /* warm cream page background */
+  --surface: #ffffff;         /* cards */
+  --text: #2f2a25;
+  --muted: #6b5f55;           /* secondary text */
+  --border: #f1e4d6;          /* card edges and dividers (decorative) */
+  --control-border: #a08b78;  /* inputs and the check circle (3:1) */
+
+  /* Orange: brand / primary actions */
+  --primary: #c2410c;
+  --primary-hover: #9a3412;
+  --primary-soft: #ffe6d5;
+
+  /* Green: completion */
+  --done: #2f7a4d;
+  --progress: #8fd3a8;
+  --success-bg: #e6f6ec;
+  --success-text: #22663c;
+
+  /* Red: errors and destructive actions (kept apart from the brand orange) */
+  --error-bg: #fde4e2;
+  --error-text: #b42318;
+
+  /* Priority badges */
+  --high-bg: #ffdcc7;
+  --high-text: #9a3412;
+  --medium-bg: #fff0c7;
+  --medium-text: #7a5300;
+  --low-bg: #d8f2e1;
+  --low-text: #22663c;
+  --done-badge-bg: #f3ece4;
+
   --radius: 12px;
-  --shadow: 0 1px 2px rgb(16 24 40 / 6%), 0 4px 12px rgb(16 24 40 / 4%);
+  --shadow: 0 1px 2px rgb(120 72 30 / 6%), 0 4px 12px rgb(120 72 30 / 5%);
 }
 
 /* ---------- Base ---------- */
@@ -93,7 +114,7 @@ body {
 
 .progress-bar {
   height: 100%;
-  background: var(--primary);
+  background: var(--progress);
   transition: width 0.3s ease;
 }
 
@@ -104,7 +125,7 @@ select {
   font: inherit;
   color: inherit;
   background: var(--surface);
-  border: 1px solid var(--border);
+  border: 1px solid var(--control-border);
   border-radius: 8px;
   padding: 10px 12px;
 }
@@ -153,12 +174,13 @@ input[aria-invalid="true"] {
 }
 
 .btn-ghost:hover {
-  color: var(--text);
-  background: var(--bg);
+  color: var(--primary-hover);
+  background: var(--primary-soft);
 }
 
 .btn-danger:hover {
-  color: var(--danger);
+  color: var(--error-text);
+  background: var(--error-bg);
 }
 
 .field-error {
@@ -209,6 +231,7 @@ input[aria-invalid="true"] {
 
 .alert {
   padding: 10px 14px;
+  border-left: 4px solid currentColor;
   border-radius: 8px;
   margin: 0 0 16px;
   font-size: 0.95rem;
@@ -242,14 +265,16 @@ input[aria-invalid="true"] {
 }
 
 .filter:hover {
-  color: var(--text);
+  color: var(--primary-hover);
 }
 
 .filter.is-active {
-  background: var(--surface);
-  color: var(--text);
-  box-shadow: var(--shadow);
-  border: 1px solid var(--border);
+  background: var(--primary-soft);
+  color: var(--primary-hover);
+}
+
+.filter.is-active .count {
+  color: inherit;
 }
 
 .count {
@@ -289,7 +314,7 @@ input[aria-invalid="true"] {
   width: 22px;
   height: 22px;
   padding: 0;
-  border: 2px solid var(--border);
+  border: 2px solid var(--control-border);
   border-radius: 50%;
   background: transparent;
   color: #fff;
@@ -302,8 +327,8 @@ input[aria-invalid="true"] {
 }
 
 .task.is-done .check {
-  background: var(--primary);
-  border-color: var(--primary);
+  background: var(--done);
+  border-color: var(--done);
 }
 
 .task-title {
@@ -322,23 +347,27 @@ input[aria-invalid="true"] {
   font-size: 0.75rem;
   font-weight: 600;
   text-transform: capitalize;
-  border: 1px solid currentColor;
 }
 
 .badge-high {
-  color: var(--high);
+  background: var(--high-bg);
+  color: var(--high-text);
 }
 
 .badge-medium {
-  color: var(--medium);
+  background: var(--medium-bg);
+  color: var(--medium-text);
 }
 
 .badge-low {
-  color: var(--low);
+  background: var(--low-bg);
+  color: var(--low-text);
 }
 
+/* Completed tasks fade to neutral while keeping readable contrast. */
 .task.is-done .badge {
-  opacity: 0.5;
+  background: var(--done-badge-bg);
+  color: var(--muted);
 }
 
 .task-actions {
@@ -375,8 +404,13 @@ input[aria-invalid="true"] {
 
 .note a,
 .link-button {
-  color: inherit;
+  color: var(--primary);
   text-decoration: underline;
+}
+
+.note a:hover,
+.link-button:hover {
+  color: var(--primary-hover);
 }
 
 .link-button {

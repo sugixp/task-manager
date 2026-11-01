@@ -1,0 +1,31 @@
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Python caches and build artifacts
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Local user data (SQLite database and backups of corrupted files)
+*.db
+*.db-journal
+*.db.corrupted-*
+
+# Secrets and local configuration
+.env
+.env.*
+*.pem
+*.key
+
+# Editors and OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

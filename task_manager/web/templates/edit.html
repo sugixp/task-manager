@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}Edit task · Task Manager{% endblock %}
+
+{% block content %}
+  <form class="card edit-form" method="post" novalidate>
+    <h2>Edit task</h2>
+    <input type="hidden" name="status" value="{{ status }}">
+
+    {% if error %}<p id="edit-error" class="field-error">{{ error }}</p>{% endif %}
+
+    <label for="title">Title</label>
+    <input id="title" name="title" value="{{ form.title }}" maxlength="200" autofocus
+           {% if error %}aria-describedby="edit-error"{% endif %}>
+
+    <label for="priority">Priority</label>
+    <select id="priority" name="priority">
+      {% for priority in priorities %}
+        <option value="{{ priority }}" {% if priority == form.priority %}selected{% endif %}>
+          {{ priority | capitalize }}
+        </option>
+      {% endfor %}
+    </select>
+
+    <div class="form-actions">
+      <a class="btn btn-ghost" href="{{ url_for('index', status=status) }}">Cancel</a>
+      <button type="submit" class="btn btn-primary">Save changes</button>
+    </div>
+  </form>
+{% endblock %}

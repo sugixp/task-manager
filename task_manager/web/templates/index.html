@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block header %}
+  {% set percent = (100 * counts.done / counts.all) | round | int if counts.all else 0 %}
+  <p class="progress-label">{{ counts.done }} of {{ counts.all }} tasks done</p>
+  <div class="progress" aria-hidden="true">
+    <div class="progress-bar" style="width: {{ percent }}%"></div>
+  </div>
+{% endblock %}
+
+{% block content %}
+  <form class="card add-form" method="post" action="{{ url_for('add_task') }}" novalidate>
+    <input type="hidden" name="status" value="{{ status }}">
+    <label class="visually-hidden" for="title">Task title</label>
+    <input id="title" name="title" value="{{ form.title }}" maxlength="200"
+           placeholder="What needs to be done?" autocomplete="off" autofocus
+           {% if error %}aria-invalid="true" aria-describedby="add-error"{% endif %}>
+    <label class="visually-hidden" for="priority">Priority</label>
+    <select id="priority" name="priority">
+      {% for priority in priorities %}
+        <option value="{{ priority }}" {% if priority == form.priority %}selected{% endif %}>
+          {{ priority | capitalize }}
+        </option>
+      {% endfor %}
+    </select>
+    <button type="submit" class="btn btn-primary">Add task</button>
+    {% if error %}<p id="add-error" class="field-error">{{ error }}</p>{% endif %}
+  </form>
+
+  <nav class="filters" aria-label="Filter tasks by status">
+    {% for key, label in [("all", "All"), ("pending", "Pending"), ("done", "Done")] %}
+      <a href="{{ url_for('index', status=key) }}"
+         class="filter{% if key == status %} is-active{% endif %}"
+         {% if key == status %}aria-current="page"{% endif %}>
+        {{ label }} <span class="count">{{ counts[key] }}</span>
+      </a>
+    {% endfor %}
+  </nav>
+
+  {% if tasks %}
+    <ul class="card task-list">
+      {% for task in tasks %}
+        <li class="task{% if task.done %} is-done{% endif %}">
+          <form method="post" action="{{ url_for('toggle_task', task_id=task.id) }}">
+            <input type="hidden" name="status" value="{{ status }}">
+            <button type="submit" class="check"
+                    aria-label="Mark &quot;{{ task.title }}&quot; as {{ 'pending' if task.done else 'done' }}"
+                    title="Mark as {{ 'pending' if task.done else 'done' }}">
+              {% if task.done %}&#10003;{% endif %}
+            </button>
+          </form>
+          <span class="task-title">{{ task.title }}</span>
+          <span class="badge badge-{{ task.priority }}">{{ task.priority }}</span>
+          <div class="task-actions">
+            <a class="btn btn-ghost" href="{{ url_for('edit_task', task_id=task.id, status=status) }}">Edit</a>
+            <form method="post" action="{{ url_for('delete_task', task_id=task.id) }}"
+                  data-confirm="Delete &quot;{{ task.title }}&quot;? This cannot be undone.">
+              <input type="hidden" name="status" value="{{ status }}">
+              <button type="submit" class="btn btn-ghost btn-danger">Delete</button>
+            </form>
+          </div>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    {% set empty = {
+      "all": ("No tasks yet", "Add your first task above to get started."),
+      "pending": ("Nothing pending", "You're all caught up!"),
+      "done": ("No completed tasks yet", "Finished tasks will show up here."),
+    }[status] %}
+    <div class="card empty-state">
+      <p class="empty-title">{{ empty[0] }}</p>
+      <p class="empty-text">{{ empty[1] }}</p>
+    </div>
+  {% endif %}
+{% endblock %}

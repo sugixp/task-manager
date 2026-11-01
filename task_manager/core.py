@@ -18,12 +18,20 @@ DB_PATH_ENV_VAR = "TASK_MANAGER_DB"
 DEFAULT_DB_PATH = Path(__file__).resolve().parent.parent / "tasks.db"
 
 MAX_TITLE_LENGTH = 200
+PRIORITIES = ("low", "medium", "high")
+DEFAULT_PRIORITY = "medium"
+STATUS_FILTERS = {
+    "all": "",
+    "pending": "WHERE done = 0",
+    "done": "WHERE done = 1",
+}
 
 CREATE_TABLE_SQL = """
     CREATE TABLE tasks (
-        id    INTEGER PRIMARY KEY AUTOINCREMENT,
-        title TEXT    NOT NULL,
-        done  INTEGER NOT NULL DEFAULT 0
+        id       INTEGER PRIMARY KEY AUTOINCREMENT,
+        title    TEXT    NOT NULL,
+        done     INTEGER NOT NULL DEFAULT 0,
+        priority TEXT    NOT NULL DEFAULT 'medium'
     )
 """
 
@@ -49,6 +57,7 @@ class Task:
     id: int
     title: str
     done: bool
+    priority: str
 
 
 def default_db_path() -> Path:
@@ -65,25 +74,72 @@ class TaskManager:
 
     # ---------- public API ----------
 
-    def add_task(self, title: str) -> Task:
+    def add_task(self, title: str, priority: str = DEFAULT_PRIORITY) -> Task:
         title = self._clean_title(title)
-        cursor = self._write("INSERT INTO tasks (title) VALUES (?)", (title,))
+        priority = self._clean_priority(priority)
+        cursor = self._write(
+            "INSERT INTO tasks (title, priority) VALUES (?, ?)", (title, priority)
+        )
         return self.get_task(cursor.lastrowid)
 
-    def list_tasks(self) -> list[Task]:
-        rows = self._query("SELECT id, title, done FROM tasks ORDER BY id")
+    def list_tasks(self, status: str = "all") -> list[Task]:
+        """Pending tasks first, then by priority (high first), then oldest first."""
+        if status not in STATUS_FILTERS:
+            raise ValidationError(
+                f"Status must be one of: {', '.join(STATUS_FILTERS)}."
+            )
+        rows = self._query(
+            f"""
+            SELECT id, title, done, priority FROM tasks
+            {STATUS_FILTERS[status]}
+            ORDER BY done,
+                     CASE priority WHEN 'high' THEN 0 WHEN 'medium' THEN 1 ELSE 2 END,
+                     id
+            """
+        )
         return [self._to_task(row) for row in rows]
+
+    def count_tasks(self) -> dict[str, int]:
+        row = self._query(
+            "SELECT COUNT(*) AS total, COALESCE(SUM(done), 0) AS done FROM tasks"
+        )[0]
+        return {
+            "all": row["total"],
+            "pending": row["total"] - row["done"],
+            "done": row["done"],
+        }
 
     def get_task(self, task_id: int) -> Task:
         rows = self._query(
-            "SELECT id, title, done FROM tasks WHERE id = ?", (task_id,)
+            "SELECT id, title, done, priority FROM tasks WHERE id = ?", (task_id,)
         )
         if not rows:
             raise TaskNotFoundError(task_id)
         return self._to_task(rows[0])
 
-    def complete_task(self, task_id: int) -> Task:
-        cursor = self._write("UPDATE tasks SET done = 1 WHERE id = ?", (task_id,))
+    def update_task(
+        self, task_id: int, title: str | None = None, priority: str | None = None
+    ) -> Task:
+        """Change the title and/or priority. ``None`` keeps the current value."""
+        task = self.get_task(task_id)
+        title = task.title if title is None else self._clean_title(title)
+        priority = task.priority if priority is None else self._clean_priority(priority)
+        self._write(
+            "UPDATE tasks SET title = ?, priority = ? WHERE id = ?",
+            (title, priority, task_id),
+        )
+        return self.get_task(task_id)
+
+    def set_done(self, task_id: int, done: bool) -> Task:
+        cursor = self._write(
+            "UPDATE tasks SET done = ? WHERE id = ?", (int(done), task_id)
+        )
+        if cursor.rowcount == 0:
+            raise TaskNotFoundError(task_id)
+        return self.get_task(task_id)
+
+    def toggle_done(self, task_id: int) -> Task:
+        cursor = self._write("UPDATE tasks SET done = 1 - done WHERE id = ?", (task_id,))
         if cursor.rowcount == 0:
             raise TaskNotFoundError(task_id)
         return self.get_task(task_id)
@@ -106,6 +162,15 @@ class TaskManager:
             )
         return title
 
+    @staticmethod
+    def _clean_priority(priority: str) -> str:
+        priority = (priority or "").strip().lower()
+        if priority not in PRIORITIES:
+            raise ValidationError(
+                f"Priority must be one of: {', '.join(PRIORITIES)}."
+            )
+        return priority
+
     # ---------- database helpers ----------
 
     def _connect(self) -> sqlite3.Connection:
@@ -124,7 +189,12 @@ class TaskManager:
 
     @staticmethod
     def _to_task(row: sqlite3.Row) -> Task:
-        return Task(id=row["id"], title=row["title"], done=bool(row["done"]))
+        return Task(
+            id=row["id"],
+            title=row["title"],
+            done=bool(row["done"]),
+            priority=row["priority"],
+        )
 
     def _init_db(self) -> None:
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
@@ -152,6 +222,11 @@ class TaskManager:
                     conn.execute("ALTER TABLE tasks RENAME COLUMN titulo TO title")
                 if "concluida" in columns:
                     conn.execute("ALTER TABLE tasks RENAME COLUMN concluida TO done")
+                if "priority" not in columns:
+                    conn.execute(
+                        "ALTER TABLE tasks ADD COLUMN priority TEXT NOT NULL "
+                        f"DEFAULT '{DEFAULT_PRIORITY}'"
+                    )
 
     def _move_corrupted_file(self) -> Path:
         timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")

@@ -2,27 +2,39 @@
 
 from __future__ import annotations
 
-from .core import Task, TaskError, TaskManager, ValidationError
+from .core import (
+    DEFAULT_PRIORITY,
+    PRIORITIES,
+    STATUS_FILTERS,
+    Task,
+    TaskError,
+    TaskManager,
+    ValidationError,
+)
 
 MENU = """
 1. Add task
 2. List tasks
-3. Complete task
-4. Delete task
-5. Quit"""
+3. Edit task
+4. Toggle done / pending
+5. Delete task
+6. Quit"""
+
+PRIORITY_CHOICES = "/".join(PRIORITIES)
+STATUS_CHOICES = "/".join(STATUS_FILTERS)
 
 
 def format_task(task: Task) -> str:
     mark = "x" if task.done else " "
-    return f"[{mark}] {task.id}. {task.title}"
+    return f"[{mark}] {task.id}. {task.title} ({task.priority})"
 
 
-def print_tasks(manager: TaskManager) -> None:
-    tasks = manager.list_tasks()
+def print_tasks(manager: TaskManager, status: str = "all") -> None:
+    tasks = manager.list_tasks(status)
     if not tasks:
-        print("\nNo tasks yet.")
+        print("\nNo tasks here yet.")
         return
-    print("\n=== Your tasks ===")
+    print(f"\n=== Your tasks ({status}) ===")
     for task in tasks:
         print(format_task(task))
 
@@ -36,28 +48,51 @@ def ask_task_id(prompt: str) -> int:
 
 
 def add_task(manager: TaskManager) -> None:
-    task = manager.add_task(input("Task title: "))
+    title = input("Task title: ")
+    priority = input(f"Priority ({PRIORITY_CHOICES}) [{DEFAULT_PRIORITY}]: ").strip()
+    task = manager.add_task(title, priority or DEFAULT_PRIORITY)
     print(f"\nTask '{task.title}' added.")
 
 
-def complete_task(manager: TaskManager) -> None:
+def list_tasks(manager: TaskManager) -> None:
+    status = input(f"Show ({STATUS_CHOICES}) [all]: ").strip().lower()
+    print_tasks(manager, status or "all")
+
+
+def edit_task(manager: TaskManager) -> None:
     print_tasks(manager)
-    task = manager.complete_task(ask_task_id("\nID of the task to complete: "))
-    print(f"\nTask '{task.title}' marked as done.")
+    task = manager.get_task(ask_task_id("\nID of the task to edit: "))
+    print("Leave a field blank to keep its current value.")
+    title = input(f"New title [{task.title}]: ").strip()
+    priority = input(f"New priority ({PRIORITY_CHOICES}) [{task.priority}]: ").strip()
+    task = manager.update_task(task.id, title or None, priority or None)
+    print(f"\nTask {task.id} updated: {format_task(task)}")
+
+
+def toggle_task(manager: TaskManager) -> None:
+    print_tasks(manager)
+    task = manager.toggle_done(ask_task_id("\nID of the task to toggle: "))
+    state = "done" if task.done else "pending"
+    print(f"\nTask '{task.title}' marked as {state}.")
 
 
 def delete_task(manager: TaskManager) -> None:
     print_tasks(manager)
-    task_id = ask_task_id("\nID of the task to delete: ")
-    manager.delete_task(task_id)
-    print(f"\nTask {task_id} deleted.")
+    task = manager.get_task(ask_task_id("\nID of the task to delete: "))
+    answer = input(f"Delete '{task.title}'? (y/N): ").strip().lower()
+    if answer != "y":
+        print("\nDeletion cancelled.")
+        return
+    manager.delete_task(task.id)
+    print(f"\nTask '{task.title}' deleted.")
 
 
 ACTIONS = {
     "1": add_task,
-    "2": print_tasks,
-    "3": complete_task,
-    "4": delete_task,
+    "2": list_tasks,
+    "3": edit_task,
+    "4": toggle_task,
+    "5": delete_task,
 }
 
 
@@ -72,7 +107,7 @@ def run(manager: TaskManager) -> None:
     while True:
         print(MENU)
         choice = input("\nChoose an option: ").strip()
-        if choice == "5":
+        if choice == "6":
             print("Bye!")
             return
         action = ACTIONS.get(choice)

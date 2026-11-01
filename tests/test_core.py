@@ -4,6 +4,7 @@ import pytest
 
 from task_manager.core import (
     DB_PATH_ENV_VAR,
+    DEFAULT_PRIORITY,
     MAX_TITLE_LENGTH,
     TaskManager,
     TaskNotFoundError,
@@ -29,7 +30,18 @@ def test_add_task_returns_pending_task(manager):
 
     assert task.title == "Buy milk"
     assert task.done is False
+    assert task.priority == DEFAULT_PRIORITY
     assert manager.list_tasks() == [task]
+
+
+def test_add_task_with_priority_is_case_insensitive(manager):
+    assert manager.add_task("Pay rent", " HIGH ").priority == "high"
+
+
+@pytest.mark.parametrize("priority", ["urgent", "", None])
+def test_add_task_rejects_invalid_priority(manager, priority):
+    with pytest.raises(ValidationError, match="Priority"):
+        manager.add_task("Pay rent", priority)
 
 
 def test_add_task_strips_whitespace(manager):
@@ -63,24 +75,110 @@ def test_list_tasks_keeps_creation_order(manager):
     assert [task.title for task in manager.list_tasks()] == titles
 
 
+def test_list_tasks_orders_pending_first_then_by_priority(manager):
+    done_high = manager.add_task("Done high", "high")
+    low = manager.add_task("Low", "low")
+    high = manager.add_task("High", "high")
+    medium = manager.add_task("Medium", "medium")
+    manager.set_done(done_high.id, True)
+
+    assert [t.title for t in manager.list_tasks()] == [
+        high.title,
+        medium.title,
+        low.title,
+        done_high.title,
+    ]
+
+
+def test_list_tasks_filters_by_status(manager):
+    pending = manager.add_task("Pending")
+    done = manager.set_done(manager.add_task("Done").id, True)
+
+    assert manager.list_tasks("pending") == [pending]
+    assert manager.list_tasks("done") == [done]
+    assert len(manager.list_tasks("all")) == 2
+
+
+def test_list_tasks_rejects_unknown_status(manager):
+    with pytest.raises(ValidationError, match="Status"):
+        manager.list_tasks("archived")
+
+
+def test_count_tasks(manager):
+    assert manager.count_tasks() == {"all": 0, "pending": 0, "done": 0}
+
+    manager.add_task("Pending")
+    manager.set_done(manager.add_task("Done").id, True)
+
+    assert manager.count_tasks() == {"all": 2, "pending": 1, "done": 1}
+
+
 def test_get_task_unknown_id_raises(manager):
     with pytest.raises(TaskNotFoundError, match="Task 42 not found"):
         manager.get_task(42)
 
 
-# ---------- completing and deleting ----------
+# ---------- editing ----------
 
 
-def test_complete_task_marks_task_as_done(manager):
+def test_update_task_changes_title_and_priority(manager):
     task = manager.add_task("Buy milk")
 
-    assert manager.complete_task(task.id).done is True
-    assert manager.get_task(task.id).done is True
+    updated = manager.update_task(task.id, title="Buy oat milk", priority="low")
+
+    assert (updated.title, updated.priority) == ("Buy oat milk", "low")
+    assert manager.get_task(task.id) == updated
 
 
-def test_complete_task_unknown_id_raises(manager):
+def test_update_task_keeps_fields_that_are_not_given(manager):
+    task = manager.add_task("Buy milk", "high")
+
+    updated = manager.update_task(task.id, title="Buy bread")
+
+    assert updated.priority == "high"
+
+
+def test_update_task_validates_input(manager):
+    task = manager.add_task("Buy milk")
+
+    with pytest.raises(ValidationError):
+        manager.update_task(task.id, title="   ")
+    with pytest.raises(ValidationError):
+        manager.update_task(task.id, priority="urgent")
+    assert manager.get_task(task.id) == task
+
+
+def test_update_task_unknown_id_raises(manager):
     with pytest.raises(TaskNotFoundError):
-        manager.complete_task(42)
+        manager.update_task(42, title="Anything")
+
+
+# ---------- done / pending and deleting ----------
+
+
+def test_set_done_marks_task_as_done_and_pending(manager):
+    task = manager.add_task("Buy milk")
+
+    assert manager.set_done(task.id, True).done is True
+    assert manager.set_done(task.id, False).done is False
+
+
+def test_toggle_done_flips_status(manager):
+    task = manager.add_task("Buy milk")
+
+    assert manager.toggle_done(task.id).done is True
+    assert manager.toggle_done(task.id).done is False
+
+
+@pytest.mark.parametrize("method", ["toggle_done", "delete_task"])
+def test_unknown_id_raises(manager, method):
+    with pytest.raises(TaskNotFoundError):
+        getattr(manager, method)(42)
+
+
+def test_set_done_unknown_id_raises(manager):
+    with pytest.raises(TaskNotFoundError):
+        manager.set_done(42, True)
 
 
 def test_delete_task_removes_it(manager):
@@ -90,11 +188,6 @@ def test_delete_task_removes_it(manager):
     manager.delete_task(remove.id)
 
     assert manager.list_tasks() == [keep]
-
-
-def test_delete_task_unknown_id_raises(manager):
-    with pytest.raises(TaskNotFoundError):
-        manager.delete_task(42)
 
 
 # ---------- persistence and storage ----------
@@ -153,14 +246,14 @@ def test_migrates_legacy_portuguese_schema_without_data_loss(db_path):
     manager = TaskManager(db_path)
 
     tasks = manager.list_tasks()
-    assert [(t.id, t.title, t.done) for t in tasks] == [
-        (1, "Estudar", True),
-        (2, "Ler", False),
+    assert sorted((t.id, t.title, t.done, t.priority) for t in tasks) == [
+        (1, "Estudar", True, DEFAULT_PRIORITY),
+        (2, "Ler", False, DEFAULT_PRIORITY),
     ]
     with sqlite3.connect(db_path) as conn:
         columns = {row[1] for row in conn.execute("PRAGMA table_info(tasks)")}
     conn.close()
-    assert {"title", "done"} <= columns
+    assert {"title", "done", "priority"} <= columns
     assert not {"titulo", "concluida"} & columns
 
     # New tasks continue the existing ID sequence.

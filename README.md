@@ -25,7 +25,7 @@ A [mobile screenshot](docs/screenshot-mobile.png) is also available.
 - Priority per task: low, medium or high (shown as colored badges)
 - Filter by status: all, pending or done, with counters
 - Progress bar, empty states and clear validation messages (e.g. blank titles)
-- Responsive layout with automatic dark mode
+- Responsive light theme with a pastel orange and green palette (WCAG AA text contrast)
 - Data persists between runs in SQLite
 - Databases from the first version of the project are migrated automatically
 - A corrupted database file is moved aside instead of crashing the app
@@ -35,6 +35,7 @@ A [mobile screenshot](docs/screenshot-mobile.png) is also available.
 - Python 3.10+
 - [Flask](https://flask.palletsprojects.com/) for the web interface (HTML, CSS and a few lines of JavaScript)
 - SQLite (`sqlite3` from the standard library)
+- [Nunito](https://github.com/googlefonts/nunito) font, self-hosted (SIL Open Font License)
 - [pytest](https://pytest.org/) for automated tests
 
 ## Project structure

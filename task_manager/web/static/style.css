@@ -1,6 +1,7 @@
 /* ---------- Theme ---------- */
 
 :root {
+  color-scheme: light; /* keep native controls light even in OS dark mode */
   --bg: #f4f5f7;
   --surface: #ffffff;
   --text: #1f2330;
@@ -18,27 +19,6 @@
   --low: #059669;
   --radius: 12px;
   --shadow: 0 1px 2px rgb(16 24 40 / 6%), 0 4px 12px rgb(16 24 40 / 4%);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #111318;
-    --surface: #1a1d24;
-    --text: #e8eaef;
-    --muted: #9aa1ad;
-    --border: #2c303a;
-    --primary: #818cf8;
-    --primary-hover: #a5b4fc;
-    --danger: #f87171;
-    --success-bg: #0f2a22;
-    --success-text: #6ee7b7;
-    --error-bg: #2d1717;
-    --error-text: #fca5a5;
-    --high: #f87171;
-    --medium: #fbbf24;
-    --low: #34d399;
-    --shadow: none;
-  }
 }
 
 /* ---------- Base ---------- */

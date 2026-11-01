@@ -49,7 +49,8 @@ task_manager/
     └── static/      # CSS and JavaScript
 tests/
 ├── test_core.py     # Business-logic tests
-└── test_web.py      # Web route tests
+├── test_web.py      # Web route tests
+└── e2e/             # Playwright tests of the static demo
 demo/                # Static JavaScript demo for GitHub Pages
 scripts/             # Screenshot and demo build helpers
 ```
@@ -139,10 +140,24 @@ The database file is local user data and is ignored by Git.
 
 ## Running the tests
 
+Unit and web tests (no browser needed):
+
 ```bash
 pip install -r requirements-dev.txt
 python -m pytest
 ```
+
+End-to-end tests of the static demo, using [Playwright](https://playwright.dev/python/).
+They build the demo into `_site/`, serve it locally and drive it in headless Chromium.
+They are excluded from the default run, so pass the folder explicitly:
+
+```bash
+pip install -r requirements-e2e.txt
+python -m playwright install chromium
+python -m pytest tests/e2e
+```
+
+Both suites run on every push and pull request in GitHub Actions.
 
 ## Regenerating the screenshots
 
@@ -150,7 +165,7 @@ The images in `docs/` are generated with [Playwright](https://playwright.dev/pyt
 using a temporary database with sample tasks (your `tasks.db` is not touched):
 
 ```bash
-pip install -r requirements-dev.txt
+pip install -r requirements-e2e.txt
 python -m playwright install chromium
 python scripts/screenshot.py
 ```

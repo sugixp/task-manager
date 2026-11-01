@@ -42,6 +42,37 @@
   --shadow: 0 1px 2px rgb(120 72 30 / 6%), 0 4px 12px rgb(120 72 30 / 5%);
 }
 
+/* ---------- Font ----------
+   Nunito (SIL Open Font License, see fonts/OFL.txt), self-hosted so it works
+   offline and in the static demo. Latin subset, only the weights in use. */
+
+@font-face {
+  font-family: "Nunito";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("fonts/nunito-400.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Nunito";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("fonts/nunito-600.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Nunito";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("fonts/nunito-700.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
 /* ---------- Base ---------- */
 
 * {
@@ -52,7 +83,7 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--text);
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-family: "Nunito", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   line-height: 1.5;
 }
 
@@ -161,6 +192,7 @@ input[aria-invalid="true"] {
 .btn-primary {
   background: var(--primary);
   color: #fff;
+  font-weight: 700;
 }
 
 .btn-primary:hover {
@@ -280,7 +312,7 @@ input[aria-invalid="true"] {
 .count {
   margin-left: 4px;
   color: var(--muted);
-  font-weight: 500;
+  font-weight: 400;
 }
 
 /* ---------- Task list ---------- */
@@ -345,7 +377,7 @@ input[aria-invalid="true"] {
   padding: 2px 10px;
   border-radius: 999px;
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 700;
   text-transform: capitalize;
 }
 

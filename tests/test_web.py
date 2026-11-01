@@ -1,3 +1,5 @@
+import re
+
 import pytest
 
 from task_manager.core import TaskManager
@@ -126,3 +128,12 @@ def test_corrupted_database_warning_is_shown(db_path):
     client = create_app(db_path).test_client()
 
     assert b"was corrupted" in client.get("/").data
+
+
+def test_stylesheet_assets_are_served(client):
+    css = client.get("/static/style.css").get_data(as_text=True)
+    urls = re.findall(r'url\("([^"]+)"\)', css)
+
+    assert urls, "expected the stylesheet to reference font files"
+    for url in urls:
+        assert client.get(f"/static/{url}").status_code == 200, url

@@ -94,3 +94,13 @@ def test_changes_persist_after_reload(demo):
     expect(task_row(demo, "Survives a reload")).to_have_count(1)
     expect(task_row(demo, "Plan next sprint")).to_have_class(DONE)
     expect(demo.locator("#progress-label")).to_have_text("3 of 7 tasks done")
+
+
+def test_self_hosted_font_is_loaded(demo):
+    demo.evaluate("document.fonts.ready")
+    assert demo.evaluate("document.fonts.check('600 16px Nunito')")
+    font_requests = demo.evaluate(
+        "performance.getEntriesByType('resource')"
+        ".map(e => e.name).filter(n => n.includes('/fonts/'))"
+    )
+    assert font_requests and all(url.startswith(demo.url) for url in font_requests)

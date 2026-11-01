@@ -8,8 +8,9 @@ practices: separation of concerns, input validation, error handling and tests.
 
 ## Screenshot
 
-<!-- Save a screenshot of the web UI as docs/screenshot.png and uncomment the line below. -->
-<!-- ![Task Manager web interface](docs/screenshot.png) -->
+![Task Manager web interface](docs/screenshot.png)
+
+A [mobile screenshot](docs/screenshot-mobile.png) is also available.
 
 ## Features
 
@@ -121,4 +122,15 @@ The database file is local user data and is ignored by Git.
 ```bash
 pip install -r requirements-dev.txt
 python -m pytest
+```
+
+## Regenerating the screenshots
+
+The images in `docs/` are generated with [Playwright](https://playwright.dev/python/)
+using a temporary database with sample tasks (your `tasks.db` is not touched):
+
+```bash
+pip install -r requirements-dev.txt
+python -m playwright install chromium
+python scripts/screenshot.py
 ```

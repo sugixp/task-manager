@@ -61,6 +61,10 @@ body {
   padding: 48px 20px;
 }
 
+[hidden] {
+  display: none !important;
+}
+
 .visually-hidden {
   position: absolute;
   width: 1px;
@@ -378,6 +382,29 @@ input[aria-invalid="true"] {
 .empty-text {
   margin: 0;
   color: var(--muted);
+}
+
+/* ---------- Footer note ---------- */
+
+.note {
+  margin: 32px 0 0;
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.note a,
+.link-button {
+  color: inherit;
+  text-decoration: underline;
+}
+
+.link-button {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  cursor: pointer;
 }
 
 /* ---------- Small screens ---------- */

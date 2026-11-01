@@ -392,8 +392,17 @@ input[aria-invalid="true"] {
     flex: 1;
   }
 
+  /* Row 1: check, title, badge. Row 2: actions, aligned with the title. */
+  .task {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    column-gap: 12px;
+    row-gap: 2px;
+    padding-bottom: 6px; /* the ghost buttons already add their own padding */
+  }
+
   .task-actions {
-    width: 100%;
-    justify-content: flex-end;
+    grid-column: 2 / -1;
+    margin-left: -10px; /* line up the button text with the title */
   }
 }

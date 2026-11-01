@@ -1,5 +1,9 @@
 # Task Manager 📝
 
+**[▶ Live demo](https://sugixp.github.io/task-manager/)** — the demo is a static
+JavaScript version that saves tasks in your browser; the main application is
+written in Python with Flask.
+
 A small task manager with a **web interface** and a **command-line interface**,
 both built on the same business-logic layer and backed by a local SQLite database.
 
@@ -44,6 +48,8 @@ task_manager/
 tests/
 ├── test_core.py     # Business-logic tests
 └── test_web.py      # Web route tests
+demo/                # Static JavaScript demo for GitHub Pages
+scripts/             # Screenshot and demo build helpers
 ```
 
 Both interfaces only call `TaskManager`; neither knows anything about SQL.
@@ -105,6 +111,18 @@ Show (all/pending/done) [all]:
 [ ] 3. Update portfolio (high)
 [ ] 2. Read a book (low)
 [x] 1. Study Flask (medium)
+```
+
+### Static demo (GitHub Pages)
+
+The [live demo](https://sugixp.github.io/task-manager/) lives in `demo/` and is
+plain HTML, CSS and JavaScript using `localStorage`. It reuses the Flask app's
+`style.css`, which is copied in at build time. It is deployed automatically by
+the `Deploy demo to GitHub Pages` workflow. To preview it locally:
+
+```bash
+python scripts/build_demo.py
+python -m http.server --directory _site
 ```
 
 ## Configuration
